@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Мистический Оракул</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400&display=swap');
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        body {
+            margin: 0;
+            overflow-x: hidden;
+            background-color: #050505;
+            font-family: 'Lato', sans-serif;
+            color: #e0e0e0;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        h1, h2, h3, .mystic-font {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Background */
+        .bg-candles {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -2;
+            background-image: url('https://image.qwenlm.ai/public_source/73962cf8-b58c-4c44-9072-90ddde9d51ad/mystical_candles_dark_atmosphere_magical_ritual_high_quality.png');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.4;
+            filter: blur(2px);
+        }
+        
+        .bg-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            background: radial-gradient(ellipse at center, rgba(75,0,130,0.3) 0%, rgba(5,5,5,0.95) 70%, #050505 100%);
+            animation: pulseBg 8s ease-in-out infinite;
+        }
+
+        @keyframes pulseBg {
+            0%, 100% { opacity: 0.95; }
+            50% { opacity: 1; }
+        }
+
+        /* UI Layer - Mobile Optimized */
+        #ui-layer {
+            position: relative;
+            min-height: 100vh;
+            pointer-events: none;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0.75rem;
+            padding-top: 1rem;
+        }
+
+        .interactive-element { pointer-events: auto; }
+
+        /* Glassmorphism Enhanced */
+        .glass-panel {
+            background: linear-gradient(135deg, rgba(30,20,50,0.95), rgba(20,15,40,0.98));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 20px;
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.6),
+                0 0 60px rgba(138,43,226,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        /* 2D MAGIC ORB - Mobile Optimized */
+        .magic-orb-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin: 2rem auto;
+        }
+
+        .magic-orb-container:active {
+            transform: scale(0.95);
+        }
+
+        .magic-orb {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(147,51,234,0.8), rgba(75,0,130,0.9));
+            box-shadow: 
+                0 0 40px rgba(147,51,234,0.8),
+                0 0 60px rgba(138,43,226,0.6),
+                0 0 80px rgba(138,43,226,0.4),
+                inset 0 0 40px rgba(255,255,255,0.3),
+                inset 0 0 60px rgba(147,51,234,0.5);
+            animation: orbPulse 3s ease-in-out infinite, orbFloat 4s ease-in-out infinite;
+            z-index: 2;
+        }
+
+        .magic-orb::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 40%, rgba(0,255,255,0.6), rgba(138,43,226,0.4));
+            filter: blur(8px);
+            animation: innerGlow 2s ease-in-out infinite;
+        }
+
+        .magic-orb::after {
+            content: '🔮';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.8));
+            animation: emojiPulse 2s ease-in-out infinite;
+            z-index: 3;
+        }
+
+        /* Orb Rings - Mobile */
+        .orb-ring {
+            position: absolute;
+            border: 2px solid rgba(255,215,0,0.4);
+            border-radius: 50%;
+            animation: ringRotate 6s linear infinite;
+            pointer-events: none;
+        }
+
+        .orb-ring:nth-child(1) {
+            width: 170px;
+            height: 170px;
+            animation-delay: 0s;
+            border-color: rgba(255,215,0,0.3);
+        }
+
+        .orb-ring:nth-child(2) {
+            width: 190px;
+            height: 190px;
+            animation-delay: -2s;
+            animation-direction: reverse;
+            border-color: rgba(147,51,234,0.4);
+        }
+
+        .orb-ring:nth-child(3) {
+            width: 210px;
+            height: 210px;
+            animation-delay: -4s;
+            border-color: rgba(0,255,255,0.3);
+        }
+
+        /* Particles */
+        .orb-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle, #ffd700, transparent);
+            border-radius: 50%;
+            animation: particleFloat 3s ease-in-out infinite;
+            box-shadow: 0 0 8px #ffd700;
+            pointer-events: none;
+        }
+
+        @keyframes orbPulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 
+                    0 0 40px rgba(147,51,234,0.8),
+                    0 0 60px rgba(138,43,226,0.6),
+                    0 0 80px rgba(138,43,226,0.4),
+                    inset 0 0 40px rgba(255,255,255,0.3);
+            }
+            50% { 
+                transform: scale(1.05);
+                box-shadow: 
+                    0 0 60px rgba(147,51,234,1),
+                    0 0 80px rgba(138,43,226,0.8),
+                    0 0 100px rgba(138,43,226,0.6),
+                    inset 0 0 60px rgba(255,255,255,0.5);
+            }
+        }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes innerGlow {
+            0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+        }
+
+        @keyframes emojiPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+        }
+
+        @keyframes ringRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes particleFloat {
+            0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.8; }
+            50% { transform: translateY(-20px) translateX(15px); opacity: 1; }
+        }
+
+        /* Explosion Animation */
+        .orb-exploding .magic-orb {
+            animation: orbExplode 1s ease-out forwards;
+        }
+
+        @keyframes orbExplode {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* Cards - Mobile Optimized */
+        .card-container {
+            perspective: 1200px;
+            width: 150px;
+            height: 240px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin: 0.5rem;
+        }
+        
+        .card-container:active {
+            transform: scale(0.98);
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%; height: 100%;
+            text-align: center;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+        
+        .card-container.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%; height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            box-shadow: 
+                0 8px 30px rgba(0,0,0,0.5),
+                0 0 20px rgba(255,215,0,0.3);
+            overflow: hidden;
+            border: 2px solid rgba(255,215,0,0.6);
+        }
+        
+        .card-front {
+            background: linear-gradient(145deg, #1a0b2e 0%, #2d1b4e 50%, #1a0b2e 100%);
+            display: flex; align-items: center; justify-content: center;
+            animation: cardGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes cardGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(138,43,226,0.4); }
+            50% { box-shadow: 0 0 30px rgba(255,215,0,0.6); }
+        }
+
+        .card-back {
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            transform: rotateY(180deg);
+            display: flex; flex-direction: column;
+        }
+
+        .card-emoji {
+            width: 100%; 
+            height: 60%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 70px;
+            background: linear-gradient(180deg, #1a0b2e, #2d1b4e);
+            border-bottom: 2px solid rgba(255,215,0,0.5);
+            filter: drop-shadow(0 0 15px rgba(255,215,0,0.5));
+            animation: emojiFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes emojiFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .card-content {
+            padding: 10px;
+            height: 40%;
+            display: flex; flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(180deg, rgba(26,11,46,0.98), rgba(22,33,62,0.98));
+            color: #ffd700;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in { animation: fadeIn 0.8s ease-out forwards; }
+        .hidden-section { display: none !important; opacity: 0; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: linear-gradient(180deg, #0f0c29, #1a1a2e); }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #6b2d8f, #4b0082);
+            border-radius: 3px;
+        }
+
+        /* Zodiac Grid - Mobile */
+        #zodiac-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .zodiac-btn {
+            padding: 1rem 0.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .zodiac-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .zodiac-btn.selected {
+            border-color: #ffd700 !important;
+            background: linear-gradient(135deg, rgba(75,0,130,0.8), rgba(138,43,226,0.6)) !important;
+            box-shadow: 0 0 25px rgba(255,215,0,0.5) !important;
+            transform: scale(1.05) !important;
+        }
+
+        /* Prediction Area - Mobile */
+        #prediction-area {
+            animation: predictionAppear 1s ease-out;
+            border: 2px solid rgba(255,215,0,0.4);
+            background: linear-gradient(145deg, rgba(30,20,50,0.95), rgba(20,15,40,0.98));
+            margin: 1.5rem 0.5rem;
+            padding: 1.5rem 1rem;
+        }
+        
+        @keyframes predictionAppear {
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Floating animation for cards */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        .card-container:not(.flipped) {
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .card-container:nth-child(2) { animation-delay: -1.3s; }
+        .card-container:nth-child(3) { animation-delay: -2.6s; }
+
+        /* Responsive Breakpoints */
+        @media (min-width: 640px) {
+            .magic-orb-container {
+                width: 260px;
+                height: 260px;
+            }
+            .magic-orb {
+                width: 160px;
+                height: 160px;
+            }
+            .magic-orb::after {
+                font-size: 70px;
+            }
+            .orb-ring:nth-child(1) { width: 200px; height: 200px; }
+            .orb-ring:nth-child(2) { width: 220px; height: 220px; }
+            .orb-ring:nth-child(3) { width: 240px; height: 240px; }
+            .card-container {
+                width: 170px;
+                height: 270px;
+            }
+            .card-emoji {
+                font-size: 80px;
+            }
+            #zodiac-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 1rem;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .magic-orb-container {
+                width: 300px;
+                height: 300px;
+            }
+            .magic-orb {
+                width: 180px;
+                height: 180px;
+            }
+            .magic-orb::after {
+                font-size: 80px;
+            }
+            .orb-ring:nth-child(1) { width: 240px; height: 240px; }
+            .orb-ring:nth-child(2) { width: 260px; height: 260px; }
+            .orb-ring:nth-child(3) { width: 280px; height: 280px; }
+            .card-container {
+                width: 180px;
+                height: 290px;
+            }
+            .card-emoji {
+                font-size: 90px;
+            }
+            #zodiac-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .magic-orb-container {
+                width: 320px;
+                height: 320px;
+            }
+            .magic-orb {
+                width: 200px;
+                height: 200px;
+            }
+            .magic-orb::after {
+                font-size: 90px;
+            }
+            .card-container {
+                width: 200px;
+                height: 320px;
+            }
+            .card-emoji {
+                font-size: 100px;
+            }
+        }
+
+        /* Landscape orientation fix */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .magic-orb-container {
+                width: 180px;
+                height: 180px;
+                margin: 1rem auto;
+            }
+            .magic-orb {
+                width: 120px;
+                height: 120px;
+            }
+            .magic-orb::after {
+                font-size: 50px;
+            }
+            .orb-ring:nth-child(1) { width: 140px; height: 140px; }
+            .orb-ring:nth-child(2) { width: 160px; height: 160px; }
+            .orb-ring:nth-child(3) { width: 175px; height: 175px; }
+            #ui-layer {
+                padding-top: 0.5rem;
+            }
+        }
+
+        /* Prevent text selection */
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Button active states */
+        button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-candles"></div>
+    <div class="bg-overlay"></div>
+
+    <div id="ui-layer" class="no-select">
+        <header id="main-header" class="text-center interactive-element fade-in w-full mb-2">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.7)] px-2">
+                ✦ ОРАКУЛ ✦
+            </h1>
+            <p class="mt-2 text-purple-200/90 tracking-wider text-xs sm:text-sm uppercase px-2">Нажми на шар • Узнай истину</p>
+        </header>
+
+        <!-- 2D Magic Orb -->
+        <div id="magic-orb-wrapper" class="interactive-element fade-in w-full flex justify-center">
+            <div class="magic-orb-container" id="magic-orb">
+                <div class="orb-ring"></div>
+                <div class="orb-ring"></div>
+                <div class="orb-ring"></div>
+                <div class="magic-orb"></div>
+                <!-- Particles -->
+                <div class="orb-particle" style="top: 10%; left: 20%; animation-delay: 0s;"></div>
+                <div class="orb-particle" style="top: 30%; right: 15%; animation-delay: 0.5s;"></div>
+                <div class="orb-particle" style="bottom: 20%; left: 10%; animation-delay: 1s;"></div>
+                <div class="orb-particle" style="bottom: 30%; right: 20%; animation-delay: 1.5s;"></div>
+                <div class="orb-particle" style="top: 50%; left: 5%; animation-delay: 2s;"></div>
+                <div class="orb-particle" style="top: 15%; right: 30%; animation-delay: 2.5s;"></div>
+            </div>
+        </div>
+
+        <div id="status-text" class="text-center interactive-element fade-in transition-opacity duration-500 w-full mb-4">
+            <p class="text-base sm:text-lg text-white/90 animate-pulse px-4">✨ Нажмите на сферу ✨</p>
+        </div>
+
+        <!-- Zodiac Modal -->
+        <div id="zodiac-modal" class="hidden-section glass-panel p-4 sm:p-6 rounded-2xl max-w-lg w-full mx-auto interactive-element text-center my-4">
+            <h2 class="text-xl sm:text-2xl text-yellow-400 mb-4 mystic-font px-2">🌙 Выбери знак</h2>
+            <div id="zodiac-grid"></div>
+            <button id="confirm-zodiac-btn" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3 px-8 rounded-full transition-all shadow-[0_0_20px_rgba(147,51,234,0.5)] disabled:opacity-50 disabled:cursor-not-allowed border border-purple-400/50 w-full max-w-xs mx-auto block" disabled>
+                Продолжить ✨
+            </button>
+        </div>
+
+        <!-- Tarot Section -->
+        <div id="tarot-section" class="hidden-section w-full max-w-3xl mx-auto interactive-element pb-24 px-2">
+            <div class="text-center mb-6 mt-4">
+                <h2 class="text-2xl sm:text-3xl text-yellow-400 mystic-font mb-2">🔮 Расклад Таро</h2>
+                <p class="text-purple-300 text-sm sm:text-base">Знак: <span id="user-sign-display" class="font-bold text-white"></span></p>
+            </div>
+            
+            <div class="flex flex-wrap justify-center items-center" id="cards-wrapper"></div>
+
+            <!-- Prediction Area -->
+            <div id="prediction-area" class="hidden-section glass-panel rounded-xl text-center fade-in mt-6">
+                <h3 class="text-xl sm:text-2xl text-yellow-400 mystic-font mb-3 px-2">✨ Ваша Судьба ✨</h3>
+                <p id="prediction-text" class="text-sm sm:text-base text-gray-200 leading-relaxed italic px-3"></p>
+            </div>
+
+            <div class="text-center mt-8 mb-8">
+                <button onclick="location.reload()" class="border-2 border-purple-400/70 text-purple-300 hover:bg-purple-900/60 hover:text-white font-bold py-3 px-8 rounded-full transition-all duration-300 shadow-lg w-full max-w-xs mx-auto">
+                    🔄 Новое Гадание
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const zodiacSigns = [
+            { name: "Овен", icon: "♈" }, { name: "Телец", icon: "♉" },
+            { name: "Близнецы", icon: "♊" }, { name: "Рак", icon: "♋" },
+            { name: "Лев", icon: "♌" }, { name: "Дева", icon: "♍" },
+            { name: "Весы", icon: "♎" }, { name: "Скорпион", icon: "♏" },
+            { name: "Стрелец", icon: "♐" }, { name: "Козерог", icon: "♑" },
+            { name: "Водолей", icon: "♒" }, { name: "Рыбы", icon: "♓" }
+        ];
+
+        const tarotDeck = [
+            { name: "Шут", emoji: "🃏", meaning: "Новые начинания, невинность, спонтанность." },
+            { name: "Маг", emoji: "🎩", meaning: "Проявление, находчивость, сила воли." },
+            { name: "Жрица", emoji: "🌙", meaning: "Интуиция, тайные знания, мудрость." },
+            { name: "Императрица", emoji: "👑", meaning: "Плодородие, изобилие, творчество." },
+            { name: "Император", emoji: "🤴", meaning: "Власть, структура, стабильность." },
+            { name: "Влюбленные", emoji: "💕", meaning: "Любовь, гармония, важный выбор." },
+            { name: "Колесница", emoji: "🏆", meaning: "Победа, контроль, решимость." },
+            { name: "Сила", emoji: "🦁", meaning: "Храбрость, внутренняя сила." },
+            { name: "Отшельник", emoji: "🏔️", meaning: "Поиск истины, мудрость." },
+            { name: "Колесо Фортуны", emoji: "🎡", meaning: "Перемены, циклы, удача." },
+            { name: "Справедливость", emoji: "⚖️", meaning: "Баланс, закон, карма." },
+            { name: "Повешенный", emoji: "🙃", meaning: "Новый взгляд, пауза." },
+            { name: "Смерть", emoji: "💀", meaning: "Трансформация, возрождение." },
+            { name: "Умеренность", emoji: "⚗️", meaning: "Баланс, терпение, гармония." },
+            { name: "Дьявол", emoji: "😈", meaning: "Искушение, страсть." },
+            { name: "Башня", emoji: "🗼", meaning: "Перемены, пробуждение." },
+            { name: "Звезда", emoji: "⭐", meaning: "Надежда, вдохновение." },
+            { name: "Луна", emoji: "🌕", meaning: "Интуиция, подсознание." },
+            { name: "Солнце", emoji: "☀️", meaning: "Радость, успех, энергия." },
+            { name: "Суд", emoji: "📯", meaning: "Возрождение, призыв." },
+            { name: "Мир", emoji: "🌍", meaning: "Завершение, целостность." }
+        ];
+
+        let selectedZodiac = null;
+        let isExploded = false;
+        let audioContextStarted = false;
+        let cardsFlippedCount = 0;
+
+        // --- AUDIO ---
+        async function initAudio() {
+            if (audioContextStarted) return;
+            await Tone.start();
+            audioContextStarted = true;
+            startAmbientMusic();
+        }
+
+        function startAmbientMusic() {
+            const synth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "fatsine" },
+                envelope: { attack: 2, decay: 1, sustain: 1, release: 5 }
+            }).toDestination();
+            
+            const filter = new Tone.Filter(800, "lowpass").toDestination();
+            const reverb = new Tone.Reverb({ decay: 10, wet: 0.8 }).toDestination();
+            
+            synth.connect(filter);
+            filter.connect(reverb);
+            synth.volume.value = -22;
+
+            const chords = [
+                ["C3", "E3", "G3", "B3"], ["A2", "C3", "E3", "G3"],
+                ["F2", "A2", "C3", "E3"], ["G2", "B2", "D3", "F3"]
+            ];
+            
+            let chordIndex = 0;
+            setInterval(() => {
+                if(!isExploded && document.getElementById('main-header').style.display === 'none') return;
+                synth.triggerAttackRelease(chords[chordIndex], "4n");
+                chordIndex = (chordIndex + 1) % chords.length;
+            }, 8000);
+            synth.triggerAttackRelease(chords[0], "4n");
+        }
+
+        function playExplosionSound() {
+            if (!audioContextStarted) return;
+            const chime = new Tone.PolySynth(Tone.Synth).toDestination();
+            chime.volume.value = -12;
+            chime.triggerAttackRelease(["C5", "E5", "G5", "B5", "C6", "E6"], "2n");
+        }
+
+        function playCardFlipSound() {
+            if (!audioContextStarted) return;
+            const synth = new Tone.MembraneSynth().toDestination();
+            synth.volume.value = -28;
+            synth.triggerAttackRelease("C2", "32n");
+            const chime = new Tone.Synth({
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.01, decay: 0.5, sustain: 0, release: 0.5 }
+            }).toDestination();
+            chime.volume.value = -18;
+            chime.triggerAttackRelease("G5", "16n");
+        }
+
+        // --- ORB INTERACTION ---
+        const orb = document.getElementById('magic-orb');
+        orb.addEventListener('click', explodeOrb);
+        orb.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            explodeOrb();
+        });
+
+        function explodeOrb() {
+            if (isExploded) return;
+            isExploded = true;
+            
+            orb.parentElement.classList.add('orb-exploding');
+            
+            initAudio().then(() => playExplosionSound());
+            
+            document.getElementById('main-header').style.transition = 'opacity 0.8s ease';
+            document.getElementById('status-text').style.transition = 'opacity 0.8s ease';
+            document.getElementById('main-header').style.opacity = '0';
+            document.getElementById('status-text').style.opacity = '0';
+            
+            setTimeout(() => {
+                document.getElementById('magic-orb-wrapper').style.display = 'none';
+                document.getElementById('main-header').classList.add('hidden-section');
+                document.getElementById('status-text').classList.add('hidden-section');
+                showZodiacModal();
+            }, 1000);
+        }
+
+        function showZodiacModal() {
+            const modal = document.getElementById('zodiac-modal');
+            modal.classList.remove('hidden-section');
+            modal.classList.add('fade-in');
+            const grid = document.getElementById('zodiac-grid');
+            zodiacSigns.forEach(sign => {
+                const btn = document.createElement('button');
+                btn.className = 'glass-panel rounded-xl hover:bg-purple-900/50 transition-all flex flex-col items-center gap-2 group zodiac-btn';
+                btn.innerHTML = `<span class="text-3xl sm:text-4xl text-gray-300 group-hover:text-yellow-400 transition-colors">${sign.icon}</span><span class="text-xs sm:text-sm font-bold text-gray-200 group-hover:text-white">${sign.name}</span>`;
+                btn.onclick = () => selectZodiac(sign, btn);
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    selectZodiac(sign, btn);
+                });
+                grid.appendChild(btn);
+            });
+        }
+
+        function selectZodiac(sign, btnElement) {
+            selectedZodiac = sign;
+            document.querySelectorAll('#zodiac-grid button').forEach(b => {
+                b.classList.remove('selected');
+            });
+            btnElement.classList.add('selected');
+            const confirmBtn = document.getElementById('confirm-zodiac-btn');
+            confirmBtn.disabled = false;
+            confirmBtn.onclick = startTarotReading;
+            confirmBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startTarotReading();
+            });
+            playCardFlipSound();
+        }
+
+        function startTarotReading() {
+            document.getElementById('zodiac-modal').classList.add('hidden-section');
+            document.getElementById('tarot-section').classList.remove('hidden-section');
+            document.getElementById('tarot-section').classList.add('fade-in');
+            document.getElementById('user-sign-display').innerHTML = `<span class="text-xl">${selectedZodiac.icon}</span> ${selectedZodiac.name}`;
+            generateCards();
+        }
+
+        async function generateCards() {
+            const wrapper = document.getElementById('cards-wrapper');
+            wrapper.innerHTML = '';
+            cardsFlippedCount = 0;
+            document.getElementById('prediction-area').classList.add('hidden-section');
+            
+            const shuffled = [...tarotDeck].sort(() => 0.5 - Math.random());
+            const selection = shuffled.slice(0, 3);
+            const positions = ["🔮 Суть", "⚠️ Препятствие", "💫 Совет"];
+
+            for (let i = 0; i < 3; i++) {
+                const cardData = selection[i];
+                
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card-container interactive-element fade-in';
+                cardEl.style.animationDelay = `${i * 0.25}s`;
+                
+                cardEl.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-face card-front">
+                            <div class="text-center px-2">
+                                <div class="text-4xl sm:text-5xl text-yellow-400 mb-2 animate-pulse">✦</div>
+                                <div class="text-purple-200/90 tracking-widest text-xs uppercase font-semibold">Таро</div>
+                            </div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-emoji">${cardData.emoji}</div>
+                            <div class="card-content">
+                                <h3 class="font-bold text-sm sm:text-base mb-1 text-yellow-400 mystic-font">${cardData.name}</h3>
+                                <p class="text-xs text-purple-300 uppercase mb-1 font-semibold">${positions[i]}</p>
+                                <p class="text-xs leading-relaxed text-gray-300 hidden sm:block">${cardData.meaning}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                const flipCard = () => {
+                    if (!cardEl.classList.contains('flipped')) {
+                        cardEl.classList.add('flipped');
+                        playCardFlipSound();
+                        cardsFlippedCount++;
+                        if (cardsFlippedCount === 3) setTimeout(generatePrediction, 1200);
+                    }
+                };
+                
+                cardEl.onclick = flipCard;
+                cardEl.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    flipCard();
+                });
+                
+                wrapper.appendChild(cardEl);
+            }
+        }
+
+        function generatePrediction() {
+            const predictionArea = document.getElementById('prediction-area');
+            const predictionText = document.getElementById('prediction-text');
+            
+            const predictions = [
+                `Для знака ${selectedZodiac.icon} ${selectedZodiac.name} этот месяц станет временем трансформации. ✨ Прислушайтесь к интуиции. В финансах возможна удача, но в любви потребуется терпение.`,
+                `Энергия месяца благоприятствует ${selectedZodiac.icon} ${selectedZodiac.name}! 🌙 Вы найдёте ответы на важные вопросы. Будьте открыты новому!`,
+                `В этом месяце ${selectedZodiac.icon} ${selectedZodiac.name} обратите внимание на здоровье. 🕯️ Карты советуют отдохнуть. Важная встреча изменит ваш взгляд.`
+            ];
+            
+            const randomPred = predictions[Math.floor(Math.random() * predictions.length)];
+            predictionText.innerHTML = randomPred;
+            predictionArea.classList.remove('hidden-section');
+            predictionArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        document.body.addEventListener('click', () => initAudio(), { once: true });
+    </script>
+</body>
+</html>
